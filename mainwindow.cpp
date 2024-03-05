@@ -34,10 +34,30 @@ void sendUnicode(const wchar_t data)
     SendInput(1, &input[1], sizeof(INPUT));
 }
 
+void sendKey(unsigned short key)
+{
+    INPUT inputs[2] = {};
+    ZeroMemory(inputs, sizeof(inputs));
+
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = key;
+
+    inputs[1].type = INPUT_KEYBOARD;
+    inputs[1].ki.wVk = key;
+    inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+    SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+}
+
 void sendUnicode(QString line)
 {
     for(auto wc : line.toStdWString())
         sendUnicode(wc);
+}
+
+void sendEnter()
+{
+    sendKey(VK_RETURN);
 }
 }
 
@@ -51,7 +71,14 @@ MainWindow::MainWindow(QWidget *parent)
     SetWindowLong((HWND)this->winId(),GWL_EXSTYLE,exs);
     setCentralWidget(new QWidget);
 
-    auto *lay = new QVBoxLayout(centralWidget());
+    auto *lay = new QHBoxLayout(centralWidget());
+    auto *innerLay = new QVBoxLayout();
+    lay->addLayout(innerLay);
+
+    auto *enterButton = new QPushButton("Enter", centralWidget());
+    enterButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    lay->addWidget(enterButton);
+    connect(enterButton, &QPushButton::clicked, this, [] { sendEnter(); });
 
     const QString filename = QFileDialog::getOpenFileName(this);
     QFile f(filename);
@@ -63,11 +90,11 @@ MainWindow::MainWindow(QWidget *parent)
         const auto line = in.readLine();
         if(line.isEmpty())
         {
-            lay->addWidget(new QLabel);
+            innerLay->addWidget(new QLabel);
         }else
         {
             auto *pb = new QPushButton(line, centralWidget());
-            lay->addWidget(pb);
+            innerLay->addWidget(pb);
             connect(pb, &QPushButton::clicked, this, [line] { sendUnicode(line); });
         }
     }
