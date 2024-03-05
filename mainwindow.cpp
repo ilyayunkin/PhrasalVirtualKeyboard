@@ -64,11 +64,13 @@ void sendEnter()
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    setWindowFlag(Qt::WindowStaysOnTopHint);
     LONG exs = GetWindowLong((HWND)this->winId(),GWL_EXSTYLE);
     exs |= WS_EX_NOACTIVATE;
     exs |= WS_EX_APPWINDOW;
     exs |= WS_EX_TOPMOST;
     SetWindowLong((HWND)this->winId(),GWL_EXSTYLE,exs);
+
     setCentralWidget(new QWidget);
 
     auto *lay = new QHBoxLayout(centralWidget());
