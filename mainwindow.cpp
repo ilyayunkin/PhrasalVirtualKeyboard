@@ -59,6 +59,8 @@ void sendEnter()
 {
     sendKey(VK_RETURN);
 }
+
+const auto SEPARATOR = '\t';
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -89,15 +91,22 @@ MainWindow::MainWindow(QWidget *parent)
     in.setCodec("UTF-8");
     while(!in.atEnd())
     {
+        auto *lineLay = new QHBoxLayout(centralWidget());
+        innerLay->addLayout(lineLay);
+
         const auto line = in.readLine();
         if(line.isEmpty())
         {
-            innerLay->addWidget(new QLabel);
+            lineLay->addWidget(new QLabel);
         }else
         {
-            auto *pb = new QPushButton(line, centralWidget());
-            innerLay->addWidget(pb);
-            connect(pb, &QPushButton::clicked, this, [line] { sendUnicode(line); });
+            const auto lineTexts = line.split(SEPARATOR);
+            for(auto text : lineTexts)
+            {
+                auto *pb = new QPushButton(text, centralWidget());
+                lineLay->addWidget(pb);
+                connect(pb, &QPushButton::clicked, this, [text] { sendUnicode(text); });
+            }
         }
     }
 
