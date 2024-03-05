@@ -91,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
     in.setCodec("UTF-8");
     while(!in.atEnd())
     {
-        auto *lineLay = new QHBoxLayout(centralWidget());
+        auto *lineLay = new QHBoxLayout();
         innerLay->addLayout(lineLay);
 
         const auto line = in.readLine();
