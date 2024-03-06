@@ -14,6 +14,9 @@ public:
     void loadNewFile();
     void reloadFile();
 
+signals:
+    void createNewKeyboard();
+
 private:
     QString m_filename;
 };

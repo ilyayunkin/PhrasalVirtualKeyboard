@@ -79,10 +79,13 @@ MainWindow::MainWindow(QWidget *parent)
     QMenuBar *menubar = new QMenuBar(this);
     setMenuBar(menubar);
     QMenu *menu = menubar->addMenu("File");
+
     QAction *reloadAction = menu->addAction("Reload");
     QAction *loadAction = menu->addAction("Load another file");
+    QAction *createNewKeyboradAction = menu->addAction("Create another keyboard");
     connect(reloadAction, &QAction::triggered, this, &MainWindow::reloadFile);
     connect(loadAction, &QAction::triggered, this, &MainWindow::loadNewFile);
+    connect(createNewKeyboradAction, &QAction::triggered, this, &MainWindow::createNewKeyboard);
 }
 
 MainWindow::~MainWindow()
