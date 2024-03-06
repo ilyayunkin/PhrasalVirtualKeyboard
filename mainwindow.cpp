@@ -7,6 +7,8 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QFileDialog>
+#include <QMenuBar>
+#include <QMenu>
 
 #include "windows.h"
 
@@ -72,7 +74,23 @@ MainWindow::MainWindow(QWidget *parent)
     exs |= WS_EX_APPWINDOW;
     exs |= WS_EX_TOPMOST;
     SetWindowLong((HWND)this->winId(),GWL_EXSTYLE,exs);
+    loadNewFile();
 
+    QMenuBar *menubar = new QMenuBar(this);
+    setMenuBar(menubar);
+    QMenu *menu = menubar->addMenu("File");
+    QAction *reloadAction = menu->addAction("Reload");
+    QAction *loadAction = menu->addAction("Load another file");
+    connect(reloadAction, &QAction::triggered, this, &MainWindow::reloadFile);
+    connect(loadAction, &QAction::triggered, this, &MainWindow::loadNewFile);
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::loadFile(QString filename)
+{
     setCentralWidget(new QWidget);
 
     auto *lay = new QHBoxLayout(centralWidget());
@@ -84,7 +102,6 @@ MainWindow::MainWindow(QWidget *parent)
     lay->addWidget(enterButton);
     connect(enterButton, &QPushButton::clicked, this, [] { sendEnter(); });
 
-    const QString filename = QFileDialog::getOpenFileName(this);
     QFile f(filename);
     f.open(QIODevice::ReadOnly);
     QTextStream in(&f);
@@ -113,7 +130,19 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(QFileInfo(filename).fileName());
 }
 
-MainWindow::~MainWindow()
+void MainWindow::loadNewFile()
 {
+    const QString filename = QFileDialog::getOpenFileName(this);
+
+    if(filename.isEmpty())
+        return;
+
+    m_filename = filename;
+    loadFile(filename);
+}
+
+void MainWindow::reloadFile()
+{
+    loadFile(m_filename);
 }
 

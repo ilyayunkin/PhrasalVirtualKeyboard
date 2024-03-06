@@ -10,5 +10,11 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void loadFile(QString filename);
+    void loadNewFile();
+    void reloadFile();
+
+private:
+    QString m_filename;
 };
 #endif // MAINWINDOW_H
