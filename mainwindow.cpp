@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QMenu>
+#include <QCheckBox>
 
 #include "windows.h"
 
@@ -51,15 +52,31 @@ void sendKey(unsigned short key)
     SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
 }
 
+void sendKey(QList<unsigned short> keys)
+{
+    QVector<INPUT> inputs;
+    inputs.resize(keys.size() * 2);
+    ZeroMemory(inputs.data(), keys.size());
+
+    for(int i = 0; i < keys.size(); ++i)
+    {
+        inputs[i].type = INPUT_KEYBOARD;
+        inputs[i].ki.wVk = keys[i];
+    }
+    for(int i = 0; i < keys.size(); ++i)
+    {
+        inputs[keys.size() + i].type = INPUT_KEYBOARD;
+        inputs[keys.size() + i].ki.wVk = keys[keys.size() - i - 1];
+        inputs[keys.size() + i].ki.dwFlags = KEYEVENTF_KEYUP;
+    }
+
+    SendInput(keys.size() * 2, inputs.data(), sizeof(INPUT));
+}
+
 void sendUnicode(QString line)
 {
     for(auto wc : line.toStdWString())
         sendUnicode(wc);
-}
-
-void sendEnter()
-{
-    sendKey(VK_RETURN);
 }
 
 const auto SEPARATOR = '\t';
@@ -100,10 +117,32 @@ void MainWindow::loadFile(QString filename)
     auto *innerLay = new QVBoxLayout();
     lay->addLayout(innerLay);
 
-    auto *enterButton = new QPushButton("Enter", centralWidget());
-    enterButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    lay->addWidget(enterButton);
-    connect(enterButton, &QPushButton::clicked, this, [] { sendEnter(); });
+    {
+        auto *enterLayout = new QVBoxLayout;
+        lay->addLayout(enterLayout);
+        auto ctrlCheck =  new QCheckBox("CTRL+");
+        auto altCheck =  new QCheckBox("ALT+");
+        auto shiftCheck =  new QCheckBox("SHIFT+");
+
+        auto *enterButton = new QPushButton("Enter", centralWidget());
+        enterButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+
+        enterLayout->addWidget(enterButton);
+        enterLayout->addWidget(ctrlCheck);
+        enterLayout->addWidget(altCheck);
+        enterLayout->addWidget(shiftCheck);
+
+        connect(enterButton, &QPushButton::clicked, this, [=] {
+            if(ctrlCheck->isChecked())
+                sendKey({VK_CONTROL, VK_RETURN});
+            else if(altCheck->isChecked())
+                sendKey({VK_MENU, VK_RETURN}); // ALT
+            else if(shiftCheck->isChecked())
+                sendKey({VK_SHIFT, VK_RETURN});
+            else
+                sendKey(VK_RETURN);
+        });
+    }
 
     QFile f(filename);
     f.open(QIODevice::ReadOnly);
